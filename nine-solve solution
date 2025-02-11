@@ -1,0 +1,54 @@
+11/02/2025
+Nine-solves
+
+A reverse engineering challenge.
+Context:
+User is reqired to enter a 6 digit code as a password;
+the input goes through a first phase of validation which makes sure that the input is in the boundries of printavle ASCII characters;
+now, in the second phase, the input is mapped to a predefines array of characters, to detect if the first character of array 0, if it is it jumps straight to Access denied;
+the third phase, the user input undergoes collatz conjunture and then grants access to the flag or not by comparing the collatz jumps made by the characters to the value of the predefined arrays;
+if the individual character jumps match the predefined values, Access is granted to the User
+
+Solution:
+
+Method 1
+Because the values of the predefined array was initiallized globally, they were stored in .data section of the binary file.
+Using gdb, i was able to access the section.
+
+Now knowing the values of the array, we have to find the ASCII characters, which will produce the sam jump when they under go colletz conjuncture.
+We can write a python script for that
+def collatz_steps(n):
+    steps = 0
+    while n != 1:
+        steps += 1
+        if n % 2 == 0:
+            n = n // 2
+        else:
+            n = 3 * n + 1
+    return steps
+
+# Given yi array (target steps for each character)
+targets = [27, 38, 87, 95, 118, 9]
+result = []
+
+# Find characters that match the required Collatz steps
+for target in targets:
+    for c in range(32, 127):  # Printable ASCII range
+        if collatz_steps(c) == target:
+            result.append(chr(c))
+            break
+
+# Print the found six-character password
+print(''.join(result))
+
+
+
+This will give us the exact characters
+
+Method 2
+
+Or better sill you can find for just the initial or a known ASCII charcter's colletz coonjuncter jump.
+Because the array of the function is not a constant or residing in the .rodata section, it can be altered.
+for an example A has 27 colletx conjuncture jumps, so then we edit the memory location of the array  in gdb to have 27 in all the arrays
+set (int)"memory address of each character of the  predefined array" = 27
+So then, when we are prompt to input the password, we just use AAAAA and we are in
